@@ -10,9 +10,13 @@ mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log("DB connection succesfull!"))
     .catch((err) => console.log(err));
 
+//allows to send json file
 app.use(express.json());
 app.use("/api/auth", authRoute); 
 app.use("/api/user", userRoute); 
+app.get("/api/test", () => {
+    console.log("test is succesfull");
+});
 
 app.listen(5000, () => {
     console.log("Backend server started")
