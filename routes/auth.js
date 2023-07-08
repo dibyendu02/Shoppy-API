@@ -3,47 +3,64 @@ const User = require("../models/User");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 
-//Register
+// Register
 router.post("/register", async (req, res) => {
+  try {
     const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: CryptoJS.AES.encrypt(req.body.password, process.env.PASS_SECRET).toString(),
-
+      username: req.body.username,
+      email: req.body.email,
+      password: CryptoJS.AES.encrypt(
+        req.body.password,
+        process.env.PASS_SECRET
+      ).toString(),
     });
-    try {
-        const savedUser = await newUser.save();
-        res.status(201).json(savedUser);
-    } catch (err) {
-        res.status(500).json(err);
-    }
 
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
+  } catch (err) {
+    // Check for specific validation error
+    if (err.name === "ValidationError") {
+      res.status(400).json(err.message);
+    } else {
+      res.status(500).json(err.message);
+    }
+  }
 });
 
-
-//Log In
+// Log In
 router.post("/login", async (req, res) => {
-    try {
-        const user = await User.findOne({ username: req.body.username });
-        !user && res.status(401).json("Wrong Username!");
+  try {
+    const user = await User.findOne({ username: req.body.username });
 
-        const hashedPassword = CryptoJS.AES.decrypt(user.password, process.env.PASS_SECRET);
-
-        const OriginalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
-
-        OriginalPassword !== req.body.password && res.status(401).json("Wrong Password!");
-        var accessToken = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, 
-            process.env.JWT_SECRET,
-            {expiresIn: "3d"}
-            );
-
-        const { password, ...others} = user._doc;
-
-        res.status(200).json({...others, accessToken});
-    }catch(err){
-        res.status(500).json(err);
+    // Check if user exists
+    if (!user) {
+      return res.status(401).json("Wrong Username!");
     }
-    
-})
+
+    const hashedPassword = CryptoJS.AES.decrypt(
+      user.password,
+      process.env.PASS_SECRET
+    );
+
+    const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
+  
+    // Check password
+    if (originalPassword !== req.body.password) {
+      return res.status(401).json("Wrong Password!");
+    }
+
+    const accessToken = jwt.sign(
+      { id: user._id, isAdmin: user.isAdmin },
+      process.env.JWT_SECRET,
+      { expiresIn: "3d" }
+    );
+
+    const { password, ...others } = user._doc;
+
+    res.status(200).json({ ...others, accessToken });
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
 
 module.exports = router;
