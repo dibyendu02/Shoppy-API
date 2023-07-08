@@ -13,7 +13,7 @@ mongoose.connect(process.env.MONGO_URL)
 //allows to send json file
 app.use(express.json());
 app.use("/api/auth", authRoute); 
-app.use("/api/user", userRoute); 
+app.use("/api/users", userRoute); 
 app.get("/api/test", () => {
     console.log("test is succesfull");
 });

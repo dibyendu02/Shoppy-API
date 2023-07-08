@@ -1,4 +1,4 @@
-const { verifyTokenandAuthorization } = require("./verifyToken");
+const { verifyTokenandAuthorization, verifyTokenandAdmin } = require("./verifyToken");
 const User = require("../models/User");
 
 const router = require("express").Router();
@@ -20,20 +20,47 @@ router.put("/:id", verifyTokenandAuthorization, async (req,res) => {
             },
             {new: true}
         );
-        res(200).json(updatedUser);
+        res.status(200).json(updatedUser);
     }catch(err){
-        res(500).json(err);
+        res.status(500).json(err);
+    }
+})
+
+//Delete
+router.delete("/:id", verifyTokenandAuthorization, async (req,res) => {
+    try{
+        await User.findByIdAndDelete(req.params.id)
+        res.status(200).json("Account deleted succesfully...");
+    }catch(err){
+        res.status(500).json(err);
+    }
+})
+
+//Get User
+router.get("/find/:id", verifyTokenandAdmin, async (req,res) => {
+    try{
+        const user = await User.findById(req.params.id) ;
+        const { password, ...others } = user._doc;
+
+        res.status(200).json(others);
+    }catch(err){
+        res.status(500).json(err);
+    }
+})
+
+//Get All User
+router.get("/", verifyTokenandAdmin, async (req,res) => {
+    const query = req.query.new;
+    try{
+        //sorting by the id
+    const users = query ? await User.find().sort({_id: - 1}).limit(3) : await User.find() ;
+        // const { password, ...others } = user._doc;
+
+        res.status(200).json(users);
+    }catch(err){
+        res.status(500).json(err);
     }
 })
 
 module.exports = router
 
-
-// router.get("/usertest", (req, res) => {
-//     res.send("user test is succesfull");
-// });
-
-// router.post("/userposttest", (req, res) => {
-//     const username = req.body.username;
-//     res.send("your username is " + username);
-// })
