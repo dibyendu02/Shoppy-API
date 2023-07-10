@@ -7,6 +7,7 @@ const authRoute = require("./routes/auth");
 const productRoute = require("./routes/product");
 const cartRoute = require("./routes/cart");
 const orderRoute = require("./routes/order");
+const cors = require("cors");
 
 const mongoose = require("mongoose");
 mongoose.connect(process.env.MONGO_URL)
@@ -14,6 +15,7 @@ mongoose.connect(process.env.MONGO_URL)
     .catch((err) => console.log(err));
 
 //allows to send json file
+app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoute); 
 app.use("/api/users", userRoute); 
