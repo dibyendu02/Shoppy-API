@@ -22,10 +22,10 @@ app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
 app.use("/api/carts", cartRoute);
 app.use("/api/orders", orderRoute);
-app.get("/api/test", () => {
-    console.log("test is succesfull");
+app.use("/", (req,res) => {
+    res.send("welcome to the server home page");
 });
 
-app.listen(5000, () => {
+app.listen(process.env.PORT || 5000, () => {
     console.log("Backend server started")
 });
